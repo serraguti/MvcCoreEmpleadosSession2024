@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MvcCoreEmpleadosSession.Extensions;
 using MvcCoreEmpleadosSession.Models;
 using MvcCoreEmpleadosSession.Repositories;
 
@@ -13,8 +14,72 @@ namespace MvcCoreEmpleadosSession.Controllers
             this.repo = repo;
         }
 
-        public async Task<IActionResult> SessionEmpleados()
+        public async Task<IActionResult> SessionEmpleadosOk(int? idempleado)
         {
+            if (idempleado != null)
+            {
+                //ALMACENAREMOS LO MINIMO DEL OBJETO, UNA COLECCION INT
+                List<int> idsEmpleados;
+                if (HttpContext.Session.GetString("IDSEMPLEADOS") == null)
+                {
+                    //TODAVIA NO TENEMOS DATOS EN SESSION Y CREAMOS LA COLECCION
+                    idsEmpleados = new List<int>();
+                }
+                else
+                {
+                    //RECUPERAMOS LA COLECCION DE Ids DE SESSION
+                    idsEmpleados =
+                        HttpContext.Session.GetObject<List<int>>("IDSEMPLEADOS");
+                }
+                //ALMACENAMOS EL ID DEL EMPLEADO EN LA COLECCION
+                idsEmpleados.Add(idempleado.Value);
+                //ALMACENAMOS LA COLECCION EN SESSION CON LOS CAMBIOS REALIZADOS
+                HttpContext.Session.SetObject("IDSEMPLEADOS", idsEmpleados);
+                ViewData["MENSAJE"] = "Empleados almacenados: "
+                    + idsEmpleados.Count;
+            }
+            List<Empleado> empleados = await this.repo.GetEmpleadosAsync();
+            return View(empleados);
+        }
+
+        public IActionResult EmpleadosAlmacenadosOk()
+        {
+            return View();
+        }
+
+
+
+        public async Task<IActionResult> SessionEmpleados
+            (int? idEmpleado)
+        {
+            if (idEmpleado != null)
+            {
+                //BUSCAMOS AL EMPLEADO
+                Empleado empleado = await
+                    this.repo.FindEmpleadoAsync(idEmpleado.Value);
+                //EN SESSION ALMACENAREMOS UN CONJUNTO DE EMPLEADOS
+                List<Empleado> empleadosList;
+                //DEBEMOS PREGUNTAR SI TENEMOS EMPLEADOS DENTRO DE 
+                //SESSION
+                if (HttpContext.Session.GetObject<List<Empleado>>("EMPLEADOS") != null)
+                {
+                    //SI YA TENEMOS EMPLEADOS, LOS RECUPERAMOS DE SESSION
+                    empleadosList =
+                        HttpContext.Session.GetObject<List<Empleado>>("EMPLEADOS");
+                }
+                else
+                {
+                    //SI NO TENEMOS EMPLEADOS, CREAMOS LA COLECCION PARA 
+                    //ALMACENAR EL PRIMER EMPLEADO
+                    empleadosList = new List<Empleado>();
+                }
+                //ALMACENAMOS EL NUEVO EMPLEADO EN SESSION
+                empleadosList.Add(empleado);
+                //GUARDAMOS LA COLECCION DENTRO DE SESSION
+                HttpContext.Session.SetObject("EMPLEADOS", empleadosList);
+                ViewData["MENSAJE"] = "Empleado " + empleado.Apellido
+                    + " almacenado correctamente";
+            }
             List<Empleado> empleados =
                 await this.repo.GetEmpleadosAsync();
             return View(empleados);
