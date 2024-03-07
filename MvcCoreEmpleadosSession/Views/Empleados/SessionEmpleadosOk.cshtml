@@ -45,11 +45,32 @@
     {
         <li class="list-group-item list-group-item-success">
             @emp.Apellido
-            <a asp-controller="Empleados"
-                asp-action="SessionEmpleadosOk"
-                asp-route-idfavorito="@emp.IdEmpleado">
-                <img src="~/images/corazon.png" style="width: 35px; height: 35px" />
-            </a>
+            @if (favoritos == null)
+            {
+                <a asp-controller="Empleados"
+                   asp-action="SessionEmpleadosOk"
+                   asp-route-idfavorito="@emp.IdEmpleado">
+                    Favorito
+                </a>
+            }
+            else
+            {
+                //PREGUNTAMOS SI TENEMOS AL EMPLEADO QUE ESTAMOS RECORRIENDO
+                //DENTRO DE LA COLECCION DE FAVORITOS
+                if (favoritos.Find(z => z.IdEmpleado == emp.IdEmpleado) != null)
+                {
+                    <img src="~/images/corazon.png" style="width: 35px; height: 35px" />
+                }
+                else
+                {
+                    <a asp-controller="Empleados"
+                       asp-action="SessionEmpleadosOk"
+                       asp-route-idfavorito="@emp.IdEmpleado">
+                        Favorito
+                    </a>
+                }
+            }
+
             @if (idsempleados == null)
             {
                 <a asp-controller="Empleados"
